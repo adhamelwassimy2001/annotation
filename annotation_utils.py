@@ -11,7 +11,7 @@ ANNOTATION_COL  = 3
 ANNOTATION_COL2 = 4
 
 ANNOTATOR_SHEETS = {
-    "adhamcr80@gmail.com":   "https://docs.google.com/spreadsheets/d/1QASnUmD8r9akkDGAwjUrMMuBHuzt0LZWxApd5yl9mmA/edit?gid=1275534848#gid=1275534848$0"
+    "adhamcr80@gmail.com":   "https://docs.google.com/spreadsheets/d/1yCjM2mD4tdPhAvdMHYEj6J05OsZQ2B07qRwo2yfavUk/edit?gid=1271897301#gid=1271897301"
 }
 
 def find_resume_index(rows, annotation_key):
