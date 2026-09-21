@@ -12,7 +12,10 @@ ANNOTATION_COL2 = 4
 
 ANNOTATOR_SHEETS = {
     "adhamcr80@gmail.com":   "https://docs.google.com/spreadsheets/d/1yCjM2mD4tdPhAvdMHYEj6J05OsZQ2B07qRwo2yfavUk/edit?gid=1271897301#gid=1271897301",
-    "kerstyn@tellmi.help":   "https://docs.google.com/spreadsheets/d/1iJOVG-a1BcRK27VBgWLt2J5BPkHaflNwtwyNirYJ81c/edit?gid=1378083309#gid=1378083309"
+    "kerstyn@tellmi.help":   "https://docs.google.com/spreadsheets/d/1iJOVG-a1BcRK27VBgWLt2J5BPkHaflNwtwyNirYJ81c/edit?gid=1378083309#gid=1378083309",
+    "kieran@tellmi.help":    "https://docs.google.com/spreadsheets/d/1jLSWEm22u4KbeCDvX2FTd9YUxcjJNhdYLI4HCh-n280/edit?gid=1378083309#gid=1378083309",
+    "jack@tellmi.help":    "https://docs.google.com/spreadsheets/d/1I3cxRbDhiMjGU82QKSIuzrhMjjrptIspsVDcYp3dnfc/edit?gid=1378083309#gid=1378083309",
+    "suzi@tellmi.help":    "https://docs.google.com/spreadsheets/d/1vPiWBG6ufmvUkDvXBHZ3DqE8ABnBKybmdS8wuGU_rkQ/edit?gid=1378083309#gid=1378083309"
 }
 
 def find_resume_index(rows, annotation_key):
