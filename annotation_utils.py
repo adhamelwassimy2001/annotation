@@ -2,8 +2,8 @@ from IPython.display import display, clear_output
 import ipywidgets as widgets
 import gspread
 
-LEVEL1_LABELS  = ["Explicit Help-Seeking", "Implicit Help-Seeking", "Not Help-Seeking", "Unsure"]
-LEVEL2_LABELS  = ["Informational Support-Seeking", "Emotional Support-Seeking", "Esteem Support-Seeking", "Network Support-Seeking", "None"]
+LEVEL1_LABELS  = ["Explicit Help-Seeking", "Implicit Help-Seeking", "Not Help-Seeking"]
+LEVEL2_LABELS  = ["Informational Support-Seeking", "Emotional Support-Seeking", "Esteem Support-Seeking", "Network Support-Seeking", "Other"]
 LEVEL2_TRIGGER = ["Explicit Help-Seeking", "Implicit Help-Seeking"]
 
 WORKSHEET_NAME  = "posts"
@@ -121,6 +121,16 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
         layout=widgets.Layout(margin="4px 0 12px 0")
     )
 
+    l1_conf_label = widgets.HTML(value="""
+        <b style="font-family:Helvetica; color:#2c3e50">Level 1 Confidence</b>
+    """)
+
+    existing_l1_conf = str(rows[current_ref[0]].get("l1_confidence", "")).strip()
+    l1_confidence = widgets.RadioButtons(
+        options=["Small", "Medium", "High"],
+        value=existing_l1_conf if existing_l1_conf in ["Small", "Medium", "High"] else None,
+        layout=widgets.Layout(margin="4px 0 12px 0")
+    )
     # ── Level 2 ───────────────────────────────────────────────────
     l2_label = widgets.HTML(value="""
         <div style="background:#fffbe6; padding:8px 12px 4px 12px; border-radius:6px">
