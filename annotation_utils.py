@@ -121,6 +121,7 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
         layout=widgets.Layout(margin="4px 0 12px 0")
     )
 
+    # ── Level 1 Confidence ───────────────────────────────────────
     l1_conf_label = widgets.HTML(value="""
         <b style="font-family:Helvetica; color:#2c3e50">Level 1 Confidence</b>
     """)
@@ -156,15 +157,21 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
         layout=widgets.Layout(flex_wrap="wrap", padding="8px 12px")
     )
 
-    l2_box = widgets.VBox(
-        [l2_label, cb_box],
-        layout=widgets.Layout(
-            border="1px solid #ffe082",
-            border_radius="6px",
-            margin="0 0 12px 0",
-            display="flex" if existing1 in LEVEL2_TRIGGER else "none"
-        )
+    l2_conf_label = widgets.HTML(value="""
+        <div style="background:#fffbe6; padding:8px 12px 4px 12px; border-radius:6px; margin-top:8px">
+            <b style="font-family:Helvetica; color:#2c3e50">Level 2 Confidence</b>
+        </div>
+    """)
+
+    existing_l2_conf = str(rows[current_ref[0]].get("l2_confidence", "")).strip()
+    l2_confidence = widgets.RadioButtons(
+        options=["Small", "Medium", "High"],
+        value=existing_l2_conf if existing_l2_conf in ["Small", "Medium", "High"] else None,
+        layout=widgets.Layout(margin="4px 0 12px 12px")
     )
+
+    l2_box = widgets.VBox(
+        [l2_label, cb_box, l2_conf_label, l2_confidence],
 
     def on_level1_change(change):
         if change["new"] in LEVEL2_TRIGGER:
@@ -209,13 +216,32 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
                     print("Please select at least one Level 2 label.")
                 return
 
+        l1_conf = l1_confidence.value
+        if not l1_conf:
+            with status:
+                clear_output()
+                print("Please select a Level 1 confidence.")
+            return
+
+        if level1 in LEVEL2_TRIGGER:
+            l2_conf = l2_confidence.value
+            if not l2_conf:
+                with status:
+                    clear_output()
+                    print("Please select a Level 2 confidence.")
+                return
+
         sheet_row = current_ref[0] + 2
         sheet.update_cell(sheet_row, ANNOTATION_COL, level1)
+        sheet.update_cell(sheet_row, ANNOTATION_COL + 1, l1_conf)
         rows[current_ref[0]][annotation_key] = level1
+        rows[current_ref[0]]["l1_confidence"] = l1_conf
 
         if level2:
             sheet.update_cell(sheet_row, ANNOTATION_COL2, level2)
+            sheet.update_cell(sheet_row, ANNOTATION_COL2 + 1, l2_conf)
             rows[current_ref[0]][annotation_key2] = level2
+            rows[current_ref[0]]["l2_confidence"] = l2_conf
 
         current_ref[0] += 1
         _advance(sheet, rows, annotation_key, annotation_key2,
@@ -238,9 +264,7 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
     )
 
     return widgets.VBox(
-        [header, post_text, l1_label, radio, l2_box, btn_row, status],
-        layout=widgets.Layout(max_width="750px", padding="8px")
-    )
+        [header, post_text, l1_label, radio, l1_conf_label, l1_confidence, l2_box, btn_row, status],
 
 def _advance(sheet, rows, annotation_key, annotation_key2,
              text_key, annotator_name, current_ref):
