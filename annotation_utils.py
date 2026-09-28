@@ -271,7 +271,10 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
     )
 
     return widgets.VBox(
-        [header, post_text, l1_label, radio, l1_conf_label, l1_confidence, l2_box, btn_row, status],
+        [header, post_text, l1_label, radio, l1_conf_label, l1_confidence,
+         l2_box, btn_row, status],
+        layout=widgets.Layout(max_width="750px", padding="8px")
+    )
 
 def _advance(sheet, rows, annotation_key, annotation_key2,
              text_key, annotator_name, current_ref):
