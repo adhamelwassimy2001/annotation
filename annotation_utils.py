@@ -172,6 +172,13 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
 
     l2_box = widgets.VBox(
         [l2_label, cb_box, l2_conf_label, l2_confidence],
+        layout=widgets.Layout(
+            border="1px solid #ffe082",
+            border_radius="6px",
+            margin="0 0 12px 0",
+            display="flex" if existing1 in LEVEL2_TRIGGER else "none"
+        )
+    )
 
     def on_level1_change(change):
         if change["new"] in LEVEL2_TRIGGER:
