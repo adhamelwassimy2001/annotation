@@ -8,7 +8,7 @@ LEVEL2_TRIGGER = ["Explicit Help-Seeking", "Implicit Help-Seeking"]
 
 WORKSHEET_NAME  = "posts"
 ANNOTATION_COL  = 3
-ANNOTATION_COL2 = 4
+ANNOTATION_COL2 = 5
 
 ANNOTATOR_SHEETS = {
     "adhamcr80@gmail.com":   "https://docs.google.com/spreadsheets/d/1yCjM2mD4tdPhAvdMHYEj6J05OsZQ2B07qRwo2yfavUk/edit?gid=1271897301#gid=1271897301",
