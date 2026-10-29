@@ -158,7 +158,7 @@ def _make_ui(sheet, rows,
 
     cb_box = widgets.VBox(
         list(checkboxes.values()),
-        layout=widgets.Layout(flex_wrap="wrap", padding="4px 12px 8px 12px")
+        layout=widgets.Layout(padding="4px 12px 8px 12px")
     )
 
     l2_box = widgets.VBox(
@@ -315,6 +315,3 @@ def _advance(sheet, rows,
                 </h2>
             </div>
         """))
-
-
-
