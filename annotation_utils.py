@@ -156,7 +156,7 @@ def _make_ui(sheet, rows,
         for label in LEVEL2_LABELS
     }
 
-    cb_box = widgets.HBox(
+    cb_box = widgets.VBox(
         list(checkboxes.values()),
         layout=widgets.Layout(flex_wrap="wrap", padding="4px 12px 8px 12px")
     )
