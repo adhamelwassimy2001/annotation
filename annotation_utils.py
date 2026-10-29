@@ -1,14 +1,16 @@
 from IPython.display import display, clear_output
 import ipywidgets as widgets
-import gspread
 
-LEVEL1_LABELS  = ["Explicit Help-Seeking", "Implicit Help-Seeking", "Not Help-Seeking"]
-LEVEL2_LABELS  = ["Informational Support-Seeking", "Emotional Support-Seeking", "Esteem Support-Seeking", "Network Support-Seeking", "Other"]
-LEVEL2_TRIGGER = ["Explicit Help-Seeking", "Implicit Help-Seeking"]
+LEVEL1_LABELS       = ["Mental health", "Physical health", "Environmental/Life", "Social", "Other"]
+LEVEL2_LABELS       = ["seeking information", "seeking emotional support", "seeking experienced matched support", "help giving", "no support request"]
+EXPLICITNESS_LABELS = ["Direct request", "Indirect request", "Mixed", "Not identifiable"]
+CONFIDENCE_LABELS   = ["Low", "Medium", "High"]
 
 WORKSHEET_NAME  = "posts"
-ANNOTATION_COL  = 3
-ANNOTATION_COL2 = 5
+ANNOTATION_COL  = 3   
+ANNOTATION_COL2 = 4   
+ANNOTATION_COL3 = 5   
+ANNOTATION_COL4 = 6   
 
 ANNOTATOR_SHEETS = {
     "adhamcr80@gmail.com":   "https://docs.google.com/spreadsheets/d/1yCjM2mD4tdPhAvdMHYEj6J05OsZQ2B07qRwo2yfavUk/edit?gid=1271897301#gid=1271897301",
@@ -46,9 +48,8 @@ def launch(client):
         with login_status:
             clear_output()
             if email not in ANNOTATOR_SHEETS:
-                print(f"Email '{email}' not found. Check with your supervisor.")
+                print(f"⚠️  Email '{email}' not found. Check with your supervisor.")
                 return
-
             try:
                 spreadsheet     = client.open_by_url(ANNOTATOR_SHEETS[email])
                 sheet           = spreadsheet.worksheet(WORKSHEET_NAME)
@@ -56,13 +57,15 @@ def launch(client):
                 keys            = list(rows[0].keys()) if rows else []
                 annotation_key  = keys[ANNOTATION_COL - 1]
                 annotation_key2 = keys[ANNOTATION_COL2 - 1]
+                annotation_key3 = keys[ANNOTATION_COL3 - 1]
+                annotation_key4 = keys[ANNOTATION_COL4 - 1]
                 text_key        = keys[1]
                 current_ref     = [find_resume_index(rows, annotation_key)]
 
-                print(f"Loaded {len(rows)} rows — resuming from record {current_ref[0] + 1}")
-
                 clear_output(wait=True)
-                display(_make_ui(sheet, rows, annotation_key, annotation_key2,
+                display(_make_ui(sheet, rows,
+                                 annotation_key, annotation_key2,
+                                 annotation_key3, annotation_key4,
                                  text_key, email, current_ref))
             except Exception as e:
                 print(f"Error loading sheet: {e}")
@@ -82,11 +85,14 @@ def launch(client):
         login_status
     ]))
 
-def _make_ui(sheet, rows, annotation_key, annotation_key2,
+def _make_ui(sheet, rows,
+             annotation_key, annotation_key2,
+             annotation_key3, annotation_key4,
              text_key, annotator_name, current_ref):
 
     total = len(rows)
     done  = sum(1 for r in rows if str(r.get(annotation_key, "")).strip())
+    row   = rows[current_ref[0]]
 
     header = widgets.HTML(value=f"""
         <div style="background:#2c3e50; padding:16px; border-radius:8px; margin-bottom:12px">
@@ -99,47 +105,45 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
         </div>
     """)
 
-    # ── Post text ─────────────────────────────────────────────────
     post_text = widgets.HTML(value=f"""
         <div style="background:#f0f0f0; border:1px solid #ddd; border-radius:6px;
                     padding:16px; margin-bottom:12px; font-family:Helvetica;
                     font-size:14px; color:#1a1a1a; line-height:1.6">
             <b style="color:#2c3e50">Post</b><br><br>
-            {rows[current_ref[0]].get(text_key, "")}
+            {row.get(text_key, "")}
         </div>
     """)
 
-    # ── Level 1 ───────────────────────────────────────────────────
     l1_label = widgets.HTML(value="""
-        <b style="font-family:Helvetica; color:#2c3e50">Level 1 — Select one</b>
+        <div style="background:#eaf0fb; padding:8px 12px; border-radius:6px; margin-bottom:4px">
+            <b style="font-family:Helvetica; color:#2c3e50">Level 1 — Select one</b>
+        </div>
     """)
 
-    existing1 = str(rows[current_ref[0]].get(annotation_key, "")).strip()
-    radio = widgets.RadioButtons(
+    existing1 = str(row.get(annotation_key, "")).strip()
+    radio_l1  = widgets.RadioButtons(
         options=LEVEL1_LABELS,
         value=existing1 if existing1 in LEVEL1_LABELS else None,
-        layout=widgets.Layout(margin="4px 0 12px 0")
+        layout=widgets.Layout(margin="4px 0 12px 12px")
     )
 
-    # ── Level 1 Confidence ───────────────────────────────────────
-    l1_conf_label = widgets.HTML(value="""
-        <b style="font-family:Helvetica; color:#2c3e50">Level 1 Confidence</b>
-    """)
-
-    existing_l1_conf = str(rows[current_ref[0]].get("l1_confidence", "")).strip()
-    l1_confidence = widgets.RadioButtons(
-        options=["Small", "Medium", "High"],
-        value=existing_l1_conf if existing_l1_conf in ["Small", "Medium", "High"] else None,
-        layout=widgets.Layout(margin="4px 0 12px 0")
+    l1_box = widgets.VBox(
+        [l1_label, radio_l1],
+        layout=widgets.Layout(
+            border="1px solid #aac4f0",
+            border_radius="6px",
+            margin="0 0 12px 0",
+            padding="8px"
+        )
     )
-    # ── Level 2 ───────────────────────────────────────────────────
+
     l2_label = widgets.HTML(value="""
-        <div style="background:#fffbe6; padding:8px 12px 4px 12px; border-radius:6px">
+        <div style="background:#fffbe6; padding:8px 12px; border-radius:6px; margin-bottom:4px">
             <b style="font-family:Helvetica; color:#2c3e50">Level 2 — Select all that apply</b>
         </div>
     """)
 
-    existing2      = str(rows[current_ref[0]].get(annotation_key2, "")).strip()
+    existing2      = str(row.get(annotation_key2, "")).strip()
     existing2_list = [s.strip() for s in existing2.split(",")] if existing2 else []
 
     checkboxes = {
@@ -154,43 +158,65 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
 
     cb_box = widgets.HBox(
         list(checkboxes.values()),
-        layout=widgets.Layout(flex_wrap="wrap", padding="8px 12px")
-    )
-
-    l2_conf_label = widgets.HTML(value="""
-        <div style="background:#fffbe6; padding:8px 12px 4px 12px; border-radius:6px; margin-top:8px">
-            <b style="font-family:Helvetica; color:#2c3e50">Level 2 Confidence</b>
-        </div>
-    """)
-
-    existing_l2_conf = str(rows[current_ref[0]].get("l2_confidence", "")).strip()
-    l2_confidence = widgets.RadioButtons(
-        options=["Small", "Medium", "High"],
-        value=existing_l2_conf if existing_l2_conf in ["Small", "Medium", "High"] else None,
-        layout=widgets.Layout(margin="4px 0 12px 12px")
+        layout=widgets.Layout(flex_wrap="wrap", padding="4px 12px 8px 12px")
     )
 
     l2_box = widgets.VBox(
-        [l2_label, cb_box, l2_conf_label, l2_confidence],
+        [l2_label, cb_box],
         layout=widgets.Layout(
             border="1px solid #ffe082",
             border_radius="6px",
             margin="0 0 12px 0",
-            display="flex" if existing1 in LEVEL2_TRIGGER else "none"
+            padding="8px"
         )
     )
 
-    def on_level1_change(change):
-        if change["new"] in LEVEL2_TRIGGER:
-            l2_box.layout.display = "flex"
-        else:
-            l2_box.layout.display = "none"
-            for cb in checkboxes.values():
-                cb.value = False
+    ex_label = widgets.HTML(value="""
+        <div style="background:#eafaf1; padding:8px 12px; border-radius:6px; margin-bottom:4px">
+            <b style="font-family:Helvetica; color:#2c3e50">Explicitness of Support-Seeking — Select one</b>
+        </div>
+    """)
 
-    radio.observe(on_level1_change, names="value")
+    existing3 = str(row.get(annotation_key3, "")).strip()
+    radio_ex  = widgets.RadioButtons(
+        options=EXPLICITNESS_LABELS,
+        value=existing3 if existing3 in EXPLICITNESS_LABELS else None,
+        layout=widgets.Layout(margin="4px 0 12px 12px")
+    )
 
-    # ── Buttons ───────────────────────────────────────────────────
+    ex_box = widgets.VBox(
+        [ex_label, radio_ex],
+        layout=widgets.Layout(
+            border="1px solid #a9dfbf",
+            border_radius="6px",
+            margin="0 0 12px 0",
+            padding="8px"
+        )
+    )
+
+    conf_label = widgets.HTML(value="""
+        <div style="background:#f5eef8; padding:8px 12px; border-radius:6px; margin-bottom:4px">
+            <b style="font-family:Helvetica; color:#2c3e50">Annotator Confidence — Select one</b>
+        </div>
+    """)
+
+    existing4 = str(row.get(annotation_key4, "")).strip()
+    radio_conf = widgets.RadioButtons(
+        options=CONFIDENCE_LABELS,
+        value=existing4 if existing4 in CONFIDENCE_LABELS else None,
+        layout=widgets.Layout(margin="4px 0 12px 12px")
+    )
+
+    conf_box = widgets.VBox(
+        [conf_label, radio_conf],
+        layout=widgets.Layout(
+            border="1px solid #d2b4de",
+            border_radius="6px",
+            margin="0 0 12px 0",
+            padding="8px"
+        )
+    )
+
     save_btn = widgets.Button(
         description="✓  Save and continue",
         style={"button_color": "#2c3e50"},
@@ -207,59 +233,54 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
     status = widgets.Output()
 
     def save(b):
-        level1 = radio.value
-        if not level1:
-            with status:
-                clear_output()
-                print("Please select a Level 1 label.")
-            return
+        with status:
+            clear_output()
 
-        level2 = ""
-        if level1 in LEVEL2_TRIGGER:
+            level1 = radio_l1.value
+            if not level1:
+                print("⚠️  Please select a Level 1 label.")
+                return
+
             level2 = ", ".join(l for l, cb in checkboxes.items() if cb.value)
             if not level2:
-                with status:
-                    clear_output()
-                    print("Please select at least one Level 2 label.")
+                print("⚠️  Please select at least one Level 2 label.")
                 return
 
-        l1_conf = l1_confidence.value
-        if not l1_conf:
-            with status:
-                clear_output()
-                print("Please select a Level 1 confidence.")
-            return
-
-        if level1 in LEVEL2_TRIGGER:
-            l2_conf = l2_confidence.value
-            if not l2_conf:
-                with status:
-                    clear_output()
-                    print("Please select a Level 2 confidence.")
+            explicitness = radio_ex.value
+            if not explicitness:
+                print("⚠️  Please select an Explicitness option.")
                 return
 
-        sheet_row = current_ref[0] + 2
-        sheet.update_cell(sheet_row, ANNOTATION_COL, level1)
-        sheet.update_cell(sheet_row, ANNOTATION_COL + 1, l1_conf)
-        rows[current_ref[0]][annotation_key] = level1
-        rows[current_ref[0]]["l1_confidence"] = l1_conf
+            confidence = radio_conf.value
+            if not confidence:
+                print("⚠️  Please select your Annotator Confidence.")
+                return
 
-        if level2:
+            sheet_row = current_ref[0] + 2
+            sheet.update_cell(sheet_row, ANNOTATION_COL,  level1)
             sheet.update_cell(sheet_row, ANNOTATION_COL2, level2)
-            sheet.update_cell(sheet_row, ANNOTATION_COL2 + 1, l2_conf)
-            rows[current_ref[0]][annotation_key2] = level2
-            rows[current_ref[0]]["l2_confidence"] = l2_conf
+            sheet.update_cell(sheet_row, ANNOTATION_COL3, explicitness)
+            sheet.update_cell(sheet_row, ANNOTATION_COL4, confidence)
 
-        current_ref[0] += 1
-        _advance(sheet, rows, annotation_key, annotation_key2,
-                 text_key, annotator_name, current_ref)
+            rows[current_ref[0]][annotation_key]  = level1
+            rows[current_ref[0]][annotation_key2] = level2
+            rows[current_ref[0]][annotation_key3] = explicitness
+            rows[current_ref[0]][annotation_key4] = confidence
+
+            current_ref[0] += 1
+            _advance(sheet, rows,
+                     annotation_key, annotation_key2,
+                     annotation_key3, annotation_key4,
+                     text_key, annotator_name, current_ref)
 
     def skip(b):
         sheet_row = current_ref[0] + 2
         sheet.update_cell(sheet_row, ANNOTATION_COL, "skip")
         rows[current_ref[0]][annotation_key] = "skip"
         current_ref[0] += 1
-        _advance(sheet, rows, annotation_key, annotation_key2,
+        _advance(sheet, rows,
+                 annotation_key, annotation_key2,
+                 annotation_key3, annotation_key4,
                  text_key, annotator_name, current_ref)
 
     save_btn.on_click(save)
@@ -271,23 +292,26 @@ def _make_ui(sheet, rows, annotation_key, annotation_key2,
     )
 
     return widgets.VBox(
-        [header, post_text, l1_label, radio, l1_conf_label, l1_confidence,
-         l2_box, btn_row, status],
+        [header, post_text, l1_box, l2_box, ex_box, conf_box, btn_row, status],
         layout=widgets.Layout(max_width="750px", padding="8px")
     )
 
-def _advance(sheet, rows, annotation_key, annotation_key2,
+def _advance(sheet, rows,
+             annotation_key, annotation_key2,
+             annotation_key3, annotation_key4,
              text_key, annotator_name, current_ref):
     clear_output(wait=True)
     if current_ref[0] < len(rows):
-        display(_make_ui(sheet, rows, annotation_key, annotation_key2,
+        display(_make_ui(sheet, rows,
+                         annotation_key, annotation_key2,
+                         annotation_key3, annotation_key4,
                          text_key, annotator_name, current_ref))
     else:
         display(widgets.HTML("""
             <div style="background:#2c3e50; padding:24px;
                         border-radius:8px; text-align:center">
                 <h2 style="color:white; font-family:Helvetica">
-                    🎉 All records completed! Great work.
+                    All records completed! Great work. Thank you.
                 </h2>
             </div>
         """))
